@@ -1,0 +1,90 @@
+
+.rowOne {
+
+  display:flex;
+  justify-content: space-between;
+  justify-content: space-around;
+  width:500px;
+
+}
+.rowTwo {
+  display:flex;
+  justify-content: space-between;
+  justify-content: space-around;
+  width:500px;
+  position: absolute;
+  bottom:10px;
+
+}
+
+.river{
+  display:flex;
+  width:320px;
+  justify-content: space-between;
+  position: absolute;
+  top: 50%; left:50%;
+
+  transform: translate(-50%,-50%);
+
+
+
+}
+.riverSlot{
+
+  display:inline-flex;
+  border:white 2px solid;
+  width: 55px;
+  height:80px;
+  overflow: hidden;
+}
+.slot{
+
+  display:inline-flex;
+  border:white 2px solid;
+  width: 100px;
+  height:80px;
+  padding:0px;
+  margin:0px;
+  overflow: hidden;
+  text-align: center;
+}
+
+
+.box{
+  position: relative;
+  padding-top:10px;
+  margin:0px;
+  height: 300px;
+  width:500px;
+  border: 5px black solid;
+  background:green;
+}
+
+.blank{
+  position: relative;
+  text-align:center;
+  background-color:white;
+  border-radius:7px ;
+  width: 40px;
+  height:64px;
+  box-shadow:.2em .2em .3em gray;
+  border:.08em solid black;
+  margin: 5px;
+}
+
+
+#value{
+
+  position: absolute;
+  font-size: 20px;
+  padding-left: 2px;
+}
+
+#suit{
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+
+  text-align:center;
+  font-size: 30px;
+}

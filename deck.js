@@ -2,9 +2,13 @@ class Deck{
   constructor(){
     this.deck = [];
     this.player = [];
+    this.riverCount = 0;
 
   }
+
+  //creates an array of cards inserts into this.deck[]
   makeDeck(){
+
     let card = (value, suit) =>{
       this.value = value;
       this.suit = suit;
@@ -22,8 +26,57 @@ class Deck{
     }
   }
 
-  showCard(div, idSlot, card){
+  //fills in player position and card in this.player[i = player number][j = card slot(1-2 cards)] array
+  playerHands(){
 
+    for(var i = 0; i<8; i++){
+        //creates and array spot for player to hold 2 cards
+        this.player[i] = [];
+      for(var j = 0; j<2; j++){
+
+          this.player[i].push(this.deck[this.deck.length - 1]);
+          this.deck.pop();
+      }
+    }
+  }
+
+
+  //will place card css to the board
+  fillSlots(){
+
+    for(var i=0; i<8; i++){
+      //parent variable will hold the id name to the parent(player position) of the two new blank cards
+      let parent = document.getElementById(i);
+      for(var j=0; j<2; j++){
+        //makes all cards that are not the first player(actual player) blank.
+        if(i!=0)this.player[i][j].show = false;
+      deck.placeCard(parent ,this.player[i][j]);
+
+      }
+
+    }
+
+  }
+
+  //places card on boards(checks to see if card should be just blank or be visible)
+  //placeCard(parent id(player / river id) position, array positon(could be last card for river or this.player[][]))
+  placeCard(idSlot, card){
+      //creates a blank card
+    var div = document.createElement("div");
+    div.className = "blank";
+
+    if(card.show == true){
+      //will show the card if this.player[][].show == true; true by default
+    deck.showCard(div, idSlot,card);
+
+  }
+  else{idSlot.appendChild(div);}
+
+
+  }
+
+  //shows the card value and suit(flips card): showCard(the parent id(player positon/river), id name of card slot, object position in array ex: )
+  showCard(div, idSlot, card){
     //creates a value div w/ textnode value and id
     var divValue = document.createElement("div");
     divValue.id = "value";
@@ -40,55 +93,14 @@ class Deck{
       div.appendChild(divSuit);
 
     idSlot.appendChild(div);
-    console.log("what");
-  }
-
-
-  placeCard(idSlot, card){
-      //creates a blank card
-    var div = document.createElement("div");
-    div.className = "blank";
-
-    if(card.show == true){
-
-    deck.showCard(div, idSlot,card);
-
-  }
-  else{idSlot.appendChild(div);}
-
 
   }
 
-
-  playerHands(){
-
-
-
-    for(var i = 0; i<8; i++){
-        this.player[i] = [];
-      for(var j = 0; j<2; j++){
-          this.player[i].push(this.deck[this.deck.length - 1]);
-          this.deck.pop();
-      }
-    }
-  }
-
-  fillSlots(){
-
-    for(var i=0; i<8; i++){
-      let parent = document.getElementById(i);
-      for(var j=0; j<2; j++){
-        if(i!=0)this.player[i][j].show = false;
-        console.log(this.player[i][j].show)
-      deck.placeCard(parent ,this.player[i][j]);
-
-      }
-
-    }
+  next(){
+    console.log(this.riverCount);
+    this.riverCount++;
 
   }
-
-
 
 
   shuffle(){
@@ -117,8 +129,10 @@ class Deck{
 
 
 function play(){
-
+//checks to see if deck variable was made before
+if (typeof deck !== 'undefined')console.log("new game");
 deck = new Deck();
+
 deck.makeDeck();
 deck.shuffle();
 deck.playerHands();
@@ -126,6 +140,6 @@ deck.fillSlots();
 
 }
 
-function next(){
-
+function playRiver(){
+  deck.next();
 }

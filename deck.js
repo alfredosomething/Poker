@@ -4,9 +4,14 @@ class Deck{
     this.player = [];
     this.riverCount = 0;
 
+
   }
 
   //creates an array of cards inserts into this.deck[]
+  get last(){
+    return this.deck[this.deck.length - 1];
+  }
+
   makeDeck(){
 
     let card = (value, suit) =>{
@@ -34,7 +39,7 @@ class Deck{
         this.player[i] = [];
       for(var j = 0; j<2; j++){
 
-          this.player[i].push(this.deck[this.deck.length - 1]);
+          this.player[i].push(this.last);
           this.deck.pop();
       }
     }
@@ -97,8 +102,11 @@ class Deck{
   }
 
   next(){
-    console.log(this.riverCount);
+
+    deck.placeCard(document.getElementsByClassName('riverSlot')[this.riverCount], this.last);
     this.riverCount++;
+    this.deck.pop();
+
 
   }
 
@@ -130,7 +138,15 @@ class Deck{
 
 function play(){
 //checks to see if deck variable was made before
-if (typeof deck !== 'undefined')console.log("new game");
+if (typeof deck !== 'undefined'){
+  console.log("new game");
+  for(let i = 0; i < 8; i++){
+    var myNode = document.getElementById(i);
+      while (myNode.firstChild) {
+        myNode.removeChild(myNode.firstChild);
+      }
+  }
+}
 deck = new Deck();
 
 deck.makeDeck();

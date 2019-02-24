@@ -141,11 +141,20 @@ function play(){
 if (typeof deck !== 'undefined'){
   console.log("new game");
   for(let i = 0; i < 8; i++){
-    var myNode = document.getElementById(i);
+    let myNode = document.getElementById(i);
       while (myNode.firstChild) {
         myNode.removeChild(myNode.firstChild);
       }
   }
+  for(let i = 0; i < 5; i++){
+    let myNode = document.getElementsByClassName('riverSlot')[i];
+      while (myNode.firstChild) {
+        myNode.removeChild(myNode.firstChild);
+      }
+  }
+
+
+
 }
 deck = new Deck();
 

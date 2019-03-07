@@ -1,19 +1,37 @@
+const suitNames = "CDSH";
+const rankNames = "23456789TJQKA";
 class Deck{
   constructor(){
     this.deck = [];
     this.player = [];
+    this.river = [];//will hold river cards, later pushed into finalCards array
     this.riverCount = 0;
-
-
   }
 
+  parseString(input){
+      var parsedCards;
+
+          parsedCards = input.map(card => {
+
+            var rank = rankNames.indexOf(card[0]);
+            var suit = suitNames.indexOf(card[1]);
+            return  rank+ (suit << 4);
+          });
+
+
+          parsedCards.sort((a, b) => {
+              const dif = (a & 15) - (b & 15);
+              if (dif === 0) { return a - b }
+              return dif;
+          });
+
+      return parsedCards;
+  }
   //creates an array of cards inserts into this.deck[]
   get last(){
     return this.deck[this.deck.length - 1];
   }
-
   makeDeck(){
-
     let card = (value, suit) =>{
       this.value = value;
       this.suit = suit;
@@ -21,8 +39,8 @@ class Deck{
       this.cardName = value + ' of ' + suit;
       return {cardName:this.cardName, suit:this.suit, value:this.value, show:this.show}
     }
-    let values = ['2','3','4','5','6','7','8','9','10','J','Q','K','A']
-    let suites = ['♣','♦','♠','♥']
+    let values = ['2','3','4','5','6','7','8','9','T','J','Q','K','A']
+    let suites = ['C','D','S','H']
 
     for(let s=0; s<suites.length; s++){
       for(let v = 0; v<values.length; v++){
@@ -40,6 +58,7 @@ class Deck{
       for(var j = 0; j<2; j++){
 
           this.player[i].push(this.last);
+          //console.log(this.player[i][0].value);
           this.deck.pop();
       }
     }
@@ -102,10 +121,29 @@ class Deck{
   }
 
   next(){
+    if(this.riverCount < 5){
+      deck.placeCard(document.getElementsByClassName('riverSlot')[this.riverCount], this.last);
+      this.riverCount++;
+      this.river.push(this.last.value + this.last.suit);
+      this.deck.pop();
+    }else{
+      console.log("Max river cards hit");
+    }
+  }
+  evaluateHand(){
+    var hand = [];
+    var card1 = this.player[0][0];
+    var card2 = this.player[0][1];
+    hand.push(card1.value + card1.suit);
+    hand.push(card2.value + card2.suit);
+    this.river.forEach(card =>{
+      hand.push(card);
+    });
+    var parsedHand = deck.parseString(hand);
+    console.log(parsedHand);
 
-    deck.placeCard(document.getElementsByClassName('riverSlot')[this.riverCount], this.last);
-    this.riverCount++;
-    this.deck.pop();
+
+
 
 
   }
@@ -120,51 +158,49 @@ class Deck{
         temporaryValue = this.deck[currentIndex];
         this.deck[currentIndex] = this.deck[randomIndex];
         this.deck[randomIndex] = temporaryValue;
-
       }
-
   }
-
-
-
 
 }
 
 
 
 
-//end of classes
-
+//end of class
+//button functions
 
 function play(){
-//checks to see if deck variable was made before
-if (typeof deck !== 'undefined'){
-  console.log("new game");
-  for(let i = 0; i < 8; i++){
-    let myNode = document.getElementById(i);
-      while (myNode.firstChild) {
-        myNode.removeChild(myNode.firstChild);
-      }
+  //checks to see if deck variable was made before
+  if (typeof deck !== 'undefined'){
+    console.log("new game");
+    for(let i = 0; i < 8; i++){
+      let myNode = document.getElementById(i);
+        while (myNode.firstChild) {
+          myNode.removeChild(myNode.firstChild);
+        }
+    }
+    for(let i = 0; i < 5; i++){
+      let myNode = document.getElementsByClassName('riverSlot')[i];
+        while (myNode.firstChild) {
+          myNode.removeChild(myNode.firstChild);
+        }
+    }
+
+
+
   }
-  for(let i = 0; i < 5; i++){
-    let myNode = document.getElementsByClassName('riverSlot')[i];
-      while (myNode.firstChild) {
-        myNode.removeChild(myNode.firstChild);
-      }
-  }
+  deck = new Deck();
+  deck.makeDeck();
+  deck.shuffle();
+  deck.playerHands();
+  deck.fillSlots();
 
-
-
-}
-deck = new Deck();
-
-deck.makeDeck();
-deck.shuffle();
-deck.playerHands();
-deck.fillSlots();
 
 }
 
 function playRiver(){
   deck.next();
+}
+function Evaluate(){
+  deck.evaluateHand();
 }

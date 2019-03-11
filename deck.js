@@ -1,5 +1,11 @@
 const suitNames = "CDSH";
 const rankNames = "23456789TJQKA";
+const cardList = [
+  "🂲 🂳 🂴 🂵 🂶 🂷 🂸 🂹 🂺 🂻 🂽 🂾 🂱",
+  "🂢 🂣 🂤 🂥 🂦 🂧 🂨 🂩 🂪 🂫 🂭 🂮 🂡",
+  "🃂 🃃 🃄 🃅 🃆 🃇 🃈 🃉 🃊 🃋 🃍 🃎 🃁",
+  "🃒 🃓 🃔 🃕 🃖 🃗 🃘 🃙 🃚 🃛 🃝 🃞 🃑",
+];;
 class Deck{
   constructor(){
     this.deck = [];
@@ -10,7 +16,7 @@ class Deck{
 
   parseString(input){
       var parsedCards;
-
+      console.log(parsedCards);
           parsedCards = input.map(card => {
 
             var rank = rankNames.indexOf(card[0]);
@@ -20,6 +26,8 @@ class Deck{
 
 
           parsedCards.sort((a, b) => {
+            console.log(a);
+            console.log(b);
               const dif = (a & 15) - (b & 15);
               if (dif === 0) { return a - b }
               return dif;
@@ -37,7 +45,8 @@ class Deck{
       this.suit = suit;
       this.show = true;
       this.cardName = value + ' of ' + suit;
-      return {cardName:this.cardName, suit:this.suit, value:this.value, show:this.show}
+      this.parsedCard = deck.parseString([this.value + this.suit]);
+      return {cardName:this.cardName, suit:this.suit, value:this.value, show:this.show, parsedCard:this.parsedCard}
     }
     let values = ['2','3','4','5','6','7','8','9','T','J','Q','K','A']
     let suites = ['C','D','S','H']
@@ -86,16 +95,18 @@ class Deck{
   //placeCard(parent id(player / river id) position, array positon(could be last card for river or this.player[][]))
   placeCard(idSlot, card){
       //creates a blank card
-    var div = document.createElement("div");
-    div.className = "blank";
+
+    var div = document.createElement("span");
+    div.className = "textCard";
 
     if(card.show == true){
+      div.innerText =(cardList[card.parsedCard >> 4].split(" ")[card.parsedCard & 15]);
       //will show the card if this.player[][].show == true; true by default
-    deck.showCard(div, idSlot,card);
+    //deck.showCard(div, idSlot,card);
 
-  }
-  else{idSlot.appendChild(div);}
+  }else{div.innerText = "🂠"};
 
+    idSlot.appendChild(div);
 
   }
 
@@ -103,6 +114,14 @@ class Deck{
   showCard(div, idSlot, card){
     //creates a value div w/ textnode value and id
     var divValue = document.createElement("div");
+    //
+    divValue.className = "textCard";
+    divValue.innerText =(cardList[card.parsedCard >> 4].split(" ")[card.parsedCard & 15]);
+
+    //divValue.appendChild(nodeValue);
+    //console.log(nodeValue);
+
+    /*
     divValue.id = "value";
     var nodeValue = document.createTextNode(card.value);
     divValue.appendChild(nodeValue);
@@ -111,10 +130,10 @@ class Deck{
     divSuit.id = "suit";
     var nodeSuit = document.createTextNode(card.suit);
     divSuit.appendChild(nodeSuit);
-
+*/
     //appends the value div and suit div to the blank div
-      div.appendChild(divValue);
-      div.appendChild(divSuit);
+    div.appendChild(divValue);
+      //div.appendChild(divSuit);
 
     idSlot.appendChild(div);
 
@@ -123,6 +142,7 @@ class Deck{
   next(){
     if(this.riverCount < 5){
       deck.placeCard(document.getElementsByClassName('riverSlot')[this.riverCount], this.last);
+      console.log(this.last.parsedCard);
       this.riverCount++;
       this.river.push(this.last.value + this.last.suit);
       this.deck.pop();

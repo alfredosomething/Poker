@@ -100,7 +100,7 @@ class Deck{
       let parent = document.getElementById(i);
       for(var j=0; j<2; j++){
         //makes all cards that are not the first player(actual player) blank.
-        if(i!=0)this.player[i][j].show = false;
+        if(i!=0)this.player[i][j].show = true;
       deck.placeCard(parent ,this.player[i][j]);
       }
     }
@@ -192,9 +192,10 @@ class Deck{
     console.log("test");
     const ranking = Object.values(tests);
 
-    var found = false;
+
     // this will positon the the 5 cards to every perm until tests return true(loop will terminate and allhandsranked with the highest score)
-    for(let permHand = 0; permHand<21 && found!==true; permHand++){
+    for(let permHand = 0; permHand<21 ; permHand++){
+      var found = false;
       ranked = suited = hand = "";
       //loop will make a new order of 5 cards depending on the permutation then turn it into a 16 bit string
       for(let index = 0; index<5; index++){
@@ -215,12 +216,12 @@ class Deck{
             found = true;
         }
       }
-
     }
-    console.log(allHandsRanked);
+    console.log(allHandsRanked.sort((a,b) => a.score - b.score)
+    .filter((hand,i,arr)=> i=== 0 ? true : hand.score === arr[i-1].score)[0]);
     return allHandsRanked
     .sort((a,b) => a.score - b.score)
-    .filter((hand,i,arr)=> i=== 0 ? true : hand.score === arr[i-1].score);
+    .filter((hand,i,arr)=> i=== 0 ? true : hand.score === arr[i-1].score)[0];
 
 
 
@@ -229,30 +230,34 @@ class Deck{
   pickWinner(){
     var winners = [];
     var scores = [];
+    var handName = [];
     for(let i = 0; i<8; i++){
       var result = deck.evaluateHand(this.player[i]);//display the score of player hand
-      console.log(result);
-      result.forEach(hand => {
-      scores.push(hand.score);
-      });
+      scores.push(result.score);
+      handName.push(result.name);
+      //console.log(result);
+      //result.forEach(hand => {
+      //scores.push(hand.score);
+      //});
     }
     console.log(scores);
-    var newValue = scores[1];
+    var newValue = scores[0];
     var scoreIndex = 0
     for (let i = 0; i < scores.length; i++) {
-      if (scores[i] < newValue) {
+      if (scores[i] <= newValue) {
         //console.log(scores[i]);
+        if (scores[i] < newValue){
         console.log(newValue);
         winners = [];
         newValue = scores[i];
+        }
         winners.push(i);//array contains index of the highest scores
       }
-      else if(scores[i] == newValue){
-        winners.push(i);
-      }
+
     }
       //return winners;
       console.log(winners);
+      console.log(handName);
   }
 
 

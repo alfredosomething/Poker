@@ -27,7 +27,7 @@ const twoPair       = /(00|11|22|33|44|55|66|77|88|99|aa|bb|cc).*(00|11|22|33|44
 
 
 class Deck{
-  constructor(){
+  constructor(playerCount){
     this.deck = [];
     this.player = [];
     this.river = [];//will hold river cards, later pushed into finalCards array
@@ -208,11 +208,36 @@ class Deck{
       //will loop through all test, if a test is passed, that will be the highest possible score
       for(let i = 0; i<11 && found!==true; i++){
         if (ranking[i]()) {  // if test passed
+
+
+
+          if(twoPair.test(ranked)){
+            console.log(ranked.match(twoPair)[0].charAt(1));
+            console.log(ranked.match(twoPair));
+            allHandsRanked.push({ // add the hand and score the hand
+
+                name : rankingNames[i],
+                hand : hand,
+                score : i * 13 + (12-parseInt(ranked[4],16)-(parseInt(ranked.match(twoPair)[0].charAt(1),16) + parseInt(ranked.match(twoPair)[0].charAt(2),16))),
+            });
+          }
+
+          else if(twoOfKind.test(ranked)){
+            console.log(ranked.match(twoOfKind)[0].charAt(0));
+            allHandsRanked.push({ // add the hand and score the hand
+                name : rankingNames[i],
+                hand : hand,
+                score : i * 13 + (12-parseInt(ranked.match(twoOfKind)[0].charAt(0),16)-(parseInt(ranked[4],16)/3)),
+              });
+            }
+
+          else{
             allHandsRanked.push({ // add the hand and score the hand
                 name : rankingNames[i],
                 hand : hand,
                 score : i * 13 + (12-parseInt(ranked[4],16)),
             });
+          }
             found = true;
         }
       }

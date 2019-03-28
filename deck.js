@@ -36,12 +36,13 @@ class Deck{
 
   parseString(input){
       var parsedCards;
-      console.log(parsedCards);
+
           parsedCards = input.map(card => {
             var rank = rankNames.indexOf(card[0]);
             var suit = suitNames.indexOf(card[1]);
             return  rank+ (suit << 4);
           });
+
 
           parsedCards.sort((a, b) => {
             console.log(a);
@@ -63,6 +64,7 @@ class Deck{
       this.show = true;
       this.cardName = value + ' of ' + suit;
       this.parsedCard = deck.parseString([this.value + this.suit]);
+
 
       return {cardName:this.cardName, suit:this.suit, value:this.value, show:this.show, parsedCard:this.parsedCard}
     }
@@ -199,6 +201,7 @@ class Deck{
       ranked = suited = hand = "";
       //loop will make a new order of 5 cards depending on the permutation then turn it into a 16 bit string
       for(let index = 0; index<5; index++){
+        if( index == parsedHand.length ){break};
         const singleCard = parsedHand[allPerms[permHand][index]];
         ranked += (singleCard & 15).toString(16);
         suited += (singleCard >> 4).toString(16);
@@ -218,7 +221,9 @@ class Deck{
 
                 name : rankingNames[i],
                 hand : hand,
-                score : i * 13 + (12-parseInt(ranked[4],16)-(parseInt(ranked.match(twoPair)[0].charAt(1),16) + parseInt(ranked.match(twoPair)[0].charAt(2),16))),
+                score : i * 13 + (12-parseInt(ranked[4],16)-(parseInt(ranked.match(twoPair)[0].charAt(1),16))),
+                //arseInt(ranked.match(twoPair)[0].charAt(2),16)
+                currentScore: i,
             });
           }
 
@@ -228,6 +233,7 @@ class Deck{
                 name : rankingNames[i],
                 hand : hand,
                 score : i * 13 + (12-parseInt(ranked.match(twoOfKind)[0].charAt(0),16)-(parseInt(ranked[4],16)/3)),
+                currentScore: i,
               });
             }
 
@@ -235,18 +241,21 @@ class Deck{
             allHandsRanked.push({ // add the hand and score the hand
                 name : rankingNames[i],
                 hand : hand,
-                score : i * 13 + (12-parseInt(ranked[4],16)),
+                score : i * 13 + ((12-parseInt(ranked[4],16))-2),
+                currentScore: i,
             });
           }
             found = true;
         }
       }
     }
+
     console.log(allHandsRanked.sort((a,b) => a.score - b.score)
     .filter((hand,i,arr)=> i=== 0 ? true : hand.score === arr[i-1].score)[0]);
+    console.log(allHandsRanked.sort((a,b) => a.score - b.score));
     return allHandsRanked
-    .sort((a,b) => a.score - b.score)
-    .filter((hand,i,arr)=> i=== 0 ? true : hand.score === arr[i-1].score)[0];
+    .sort((a,b) => a.score - b.score)[0];
+    //.filter((hand,i,arr)=> i=== 0 ? true : hand.score === arr[i-1].score)[0];
 
 
 
@@ -257,7 +266,7 @@ class Deck{
     var scores = [];
     var handName = [];
     for(let i = 0; i<8; i++){
-      var result = deck.evaluateHand(this.player[i]);//display the score of player hand
+      var result = this.evaluateHand(this.player[i]);//display the score of player hand
       scores.push(result.score);
       handName.push(result.name);
       //console.log(result);
@@ -305,8 +314,20 @@ class Deck{
 
 //end of class
 //button functions
+var playerStats = [];
+  for(let i=0; i<8; i++){
+    let players = {
+      Fold: false,
+      Chips: 1500,
+      Raise: 0,
+      chippedIn: 0,
 
-function play(){
+    };
+    playerStats.push(players);
+  }
+
+
+function newRound(){
   //checks to see if deck variable was made before, if it was, it will clear the cards and make a new deck
   if (typeof deck !== 'undefined'){
     console.log("new game");
@@ -323,17 +344,139 @@ function play(){
         }
     }
 
-
-
   }
+
   deck = new Deck();
   deck.makeDeck();
   deck.shuffle();
   deck.playerHands();
   deck.fillSlots();
 
+}
+
+
+var dealer = 0;
+var pot = 0;
+var raise = 0;
+var phase = 0;
+
+function nextPlayer(playerIndex){
+  n = playerIndex++;
+  while(playerStats[n].Fold !=false)n++;
+  if(n == 8){
+    n = 0;
+  }
+  if(n == 9){
+    n = 1;
+  }
+  return n;
+}
+
+function botTurn(){
+  console.log(playerStats[0]);
+  //if(playerStats[0].Fold!= true)
+
+  for(botIndex = 1; botIndex<8; botIndex++){
+
+    if(rankNames.indexOf(deck.player[botIndex][0].value)> 8 && rankNames.indexOf(deck.player[botIndex][1].value)> 8 && raise == 0 ){
+      raise += 50;
+      pot+=50;
+      console.log(pot);
+      playerStats[botIndex].chippedIn += 50;
+      playerStats[botIndex].Raised += 50;
+      playerStats[botIndex].Chips -= 50;
+    }
+
+    else if(rankNames.indexOf(deck.player[botIndex][0].value)> 8 && rankNames.indexOf(deck.player[botIndex][1].value)> 8 && raise != 0){
+      if(playerStats[botIndex].Raise != 0){
+        let botDiff = raise - playerStats[botIndex].Raise
+        pot+=botDiff
+        playerStats[botIndex].chippedIn += botDiff;
+        playerStats[botIndex].Chips -= botDiff;
+      }else{
+        playerStats[botIndex].chippedIn += raise;
+        playerStats[botIndex].Chips -= raise;
+      }
+    }
+
+  }
+console.log(playerStats);
+
+
 
 }
+
+
+
+
+function play(){
+}
+
+function Check(){
+
+  if(raise == 0)botTurn();
+
+}
+//done i think
+function Call(){
+  //next card if last person to raise
+  if(playerStats[nextPlayer(0)].Raise == raise && raise != 0){//checks to see if next player had the original raise
+    playerStats[0].Chips-=raise;
+    pot += raise;
+    playerStats[0].chippedIn+=raise;
+    raise = 0;
+    if(phase == 0){
+      for(let i = 0; i<3; i++)deck.next();
+    }
+
+    else{
+      deck.next();
+    }
+    phase++;
+    botTurn();
+
+  }
+  else if(playerStats[0].Raise != 0 && playerStats[0].Raise < raise ){
+    let difference = playerStats[0].Raise - raise
+    pot += difference;
+    playerStats[0].Chips-=difference;
+    playerStats[0].chippedIn+=difference;
+    botTurn();
+  }else console.log("Cant call");
+  //if(playerStats[0].Raise != 0 )playerStats[0].Raise+=raise;
+
+
+
+}
+function Raise(){
+  if(raise != 0 && playerStats[0].Raise != 0){//calls the original raise
+    let raiseDiff = raise - playerStats[0].Raise;
+    pot+=raiseDiff;
+    playerStats[0].Chips-=raiseDiff;
+    playerStats[0].chippedIn+=raiseDiff;
+  }
+  raise+=50;
+  pot+=50;
+  playerStats[0].Chips-=raise;
+  playerStats[0].chippedIn+=raise;
+  botTurn();
+
+}
+function Fold(){
+  playerStats[0].Fold = true;
+  raise+=100;
+  playerStats[1].Raise = 100;
+  botTurn();
+}
+
+
+
+
+
+
+
+
+
 
 function playRiver(){
   deck.next();

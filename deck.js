@@ -360,17 +360,80 @@ var pot = 0;
 var raise = 0;
 var phase = 0;
 
-function nextPlayer(playerIndex){
-  n = playerIndex++;
-  while(playerStats[n].Fold !=false)n++;
-  if(n == 8){
-    n = 0;
+
+
+function botRaise(player){
+  if(raise != 0 && playerStats[player].Raise !== 0){//calls the original raise
+    let raiseDiff = raise - playerStats[player].Raise;
+    pot+=raiseDiff;
+    playerStats[player].Chips-=raiseDiff;
+    playerStats[player].Raise-=raiseDiff;
+    playerStats[player].chippedIn+=raiseDiff;
   }
-  if(n == 9){
-    n = 1;
+  else if(raise != 0 && playerStats[player].Raise == 0){
+    playerStats[player].Chips-=raise;
+    playerStats[player].chippedIn+=raise;
+    console.log(player);
   }
-  return n;
+  raise+=50;
+  pot+=50;
+  playerStats[player].Chips-=50;
+  playerStats[player].chippedIn+=50;
+  playerStats[player].Raise+=50;
+  if(player== 0)botTurn();
 }
+function botCall(playerId){
+  if(playerStats[nextPlayer(playerId)].Raise == raise && raise != 0){//checks to see if next player had the original raise
+    playerStats[playerId].Chips-=raise;
+    pot += raise;
+    playerStats[playerId].chippedIn+=raise;
+    raise = 0;
+    playerStats[playerId].Raise =0;//resets the amount raised(its paid for)
+    console.log("0");
+    if(phase == 0){
+      for(let i = 0; i<3; i++)deck.next();
+    }
+
+    else{
+      deck.next();
+    }
+    phase++;
+    if(playerId == 0)botTurn();
+
+  }
+  else if(playerStats[playerId].Raise != 0 && playerStats[playerId].Raise < raise ){
+    console.log("1");
+    let difference = raise - playerStats[playerId].Raise;
+    pot += difference;
+    playerStats[playerId].Chips-=difference;
+    playerStats[playerId].chippedIn+=difference;
+    if(playerId == 0)botTurn();
+  }
+  else if(playerStats[playerId].Raise == 0 && raise !=0){
+    console.log("2");
+    let difference = raise - playerStats[playerId].chippedIn;
+    playerStats[playerId].chippedIn+=difference;
+    playerStats[playerId].Chips-=difference;
+    pot += raise;
+    if(playerId == 0)botTurn();
+  }else console.log("Cant call");
+
+}
+
+
+function nextPlayer(playerIndex){
+  //n = playerIndex++;
+  playerIndex++;
+  while(playerStats[playerIndex].Fold !=false || playerStats[playerIndex].Fold ==null){
+    if(playerIndex == 8)playerIndex = 0;
+    else playerIndex++;
+  }
+  console.log(playerIndex);
+  return playerIndex;
+}
+
+
+
 
 function botTurn(){
   console.log(playerStats[0]);
@@ -379,15 +442,21 @@ function botTurn(){
   for(botIndex = 1; botIndex<8; botIndex++){
 
     if(rankNames.indexOf(deck.player[botIndex][0].value)> 8 && rankNames.indexOf(deck.player[botIndex][1].value)> 8 && raise == 0 ){
+      botRaise(botIndex);
+      /*
+
       raise += 50;
       pot+=50;
       console.log(pot);
       playerStats[botIndex].chippedIn += 50;
       playerStats[botIndex].Raised += 50;
       playerStats[botIndex].Chips -= 50;
+      */
     }
 
     else if(rankNames.indexOf(deck.player[botIndex][0].value)> 8 && rankNames.indexOf(deck.player[botIndex][1].value)> 8 && raise != 0){
+      botCall(botIndex);
+      /*
       if(playerStats[botIndex].Raise != 0){
         let botDiff = raise - playerStats[botIndex].Raise
         pot+=botDiff
@@ -397,13 +466,12 @@ function botTurn(){
         playerStats[botIndex].chippedIn += raise;
         playerStats[botIndex].Chips -= raise;
       }
+      */
     }
+    //else if(rankNames.indexOf(deck.player[botIndex][0].value)> 8 && rankNames.indexOf(deck.player[botIndex][1].value)> 8 && raise != 0)
 
   }
 console.log(playerStats);
-
-
-
 }
 
 
@@ -415,63 +483,26 @@ function play(){
 function Check(){
 
   if(raise == 0)botTurn();
-
+  else console.log("cant call. check, fold or raise");
 }
-//done i think
+
 function Call(){
-  //next card if last person to raise
-  if(playerStats[nextPlayer(0)].Raise == raise && raise != 0){//checks to see if next player had the original raise
-    playerStats[0].Chips-=raise;
-    pot += raise;
-    playerStats[0].chippedIn+=raise;
-    raise = 0;
-    if(phase == 0){
-      for(let i = 0; i<3; i++)deck.next();
-    }
-
-    else{
-      deck.next();
-    }
-    phase++;
-    botTurn();
-
-  }
-  else if(playerStats[0].Raise != 0 && playerStats[0].Raise < raise ){
-    let difference = playerStats[0].Raise - raise
-    pot += difference;
-    playerStats[0].Chips-=difference;
-    playerStats[0].chippedIn+=difference;
-    botTurn();
-  }else console.log("Cant call");
-  //if(playerStats[0].Raise != 0 )playerStats[0].Raise+=raise;
-
-
-
+  botCall(0);
 }
+
 function Raise(){
-  if(raise != 0 && playerStats[0].Raise != 0){//calls the original raise
-    let raiseDiff = raise - playerStats[0].Raise;
-    pot+=raiseDiff;
-    playerStats[0].Chips-=raiseDiff;
-    playerStats[0].chippedIn+=raiseDiff;
-  }
-  raise+=50;
-  pot+=50;
-  playerStats[0].Chips-=raise;
-  playerStats[0].chippedIn+=raise;
-  botTurn();
-
+  botRaise(0);
 }
+
 function Fold(){
-  playerStats[0].Fold = true;
-  raise+=100;
-  playerStats[1].Raise = 100;
+  //playerStats[0].Fold = true;
+  //raise+=100;
+//playerStats[1].Chips -=100;
+  //playerStats[1].chippedIn +=100;
+
+  //playerStats[1].Raise += 100;
   botTurn();
 }
-
-
-
-
 
 
 

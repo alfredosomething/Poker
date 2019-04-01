@@ -363,7 +363,7 @@ var phase = 0;
 
 
 function botRaise(player){
-  if(raise != 0 && playerStats[player].Raise !== 0){//calls the original raise
+  if(raise != 0 && playerStats[player].Raise != 0){//calls the original raise
     let raiseDiff = raise - playerStats[player].Raise;
     pot+=raiseDiff;
     playerStats[player].Chips-=raiseDiff;
@@ -377,6 +377,7 @@ function botRaise(player){
   }
   raise+=50;
   pot+=50;
+  console.log(pot, raise, player);
   playerStats[player].Chips-=50;
   playerStats[player].chippedIn+=50;
   playerStats[player].Raise+=50;
@@ -389,7 +390,7 @@ function botCall(playerId){
     playerStats[playerId].chippedIn+=raise;
     raise = 0;
     playerStats[playerId].Raise =0;//resets the amount raised(its paid for)
-    console.log("0");
+    //console.log("0");
     if(phase == 0){
       for(let i = 0; i<3; i++)deck.next();
     }
@@ -402,7 +403,7 @@ function botCall(playerId){
 
   }
   else if(playerStats[playerId].Raise != 0 && playerStats[playerId].Raise < raise ){
-    console.log("1");
+    //console.log("1");
     let difference = raise - playerStats[playerId].Raise;
     pot += difference;
     playerStats[playerId].Chips-=difference;
@@ -410,7 +411,7 @@ function botCall(playerId){
     if(playerId == 0)botTurn();
   }
   else if(playerStats[playerId].Raise == 0 && raise !=0){
-    console.log("2");
+    //console.log("2");
     let difference = raise - playerStats[playerId].chippedIn;
     playerStats[playerId].chippedIn+=difference;
     playerStats[playerId].Chips-=difference;
@@ -424,9 +425,11 @@ function botCall(playerId){
 function nextPlayer(playerIndex){
   //n = playerIndex++;
   playerIndex++;
+  if(playerIndex == 8)playerIndex = 0;
   while(playerStats[playerIndex].Fold !=false || playerStats[playerIndex].Fold ==null){
+    playerIndex++;
     if(playerIndex == 8)playerIndex = 0;
-    else playerIndex++;
+
   }
   console.log(playerIndex);
   return playerIndex;
@@ -439,9 +442,12 @@ function botTurn(){
   console.log(playerStats[0]);
   //if(playerStats[0].Fold!= true)
 
-  for(botIndex = 1; botIndex<8; botIndex++){
+  for(let botIndex = 1; botIndex<8; botIndex++){
+    console.log(botIndex);
 
-    if(rankNames.indexOf(deck.player[botIndex][0].value)> 8 && rankNames.indexOf(deck.player[botIndex][1].value)> 8 && raise == 0 ){
+    let cards = (x) => {return rankNames.indexOf(deck.player[botIndex][x].value)};
+    if(((cards(0)> 7 && cards(1)==12) || (cards(1)> 7 && cards(0)== 12)) && raise == 0){
+
       botRaise(botIndex);
       /*
 
@@ -454,7 +460,7 @@ function botTurn(){
       */
     }
 
-    else if(rankNames.indexOf(deck.player[botIndex][0].value)> 8 && rankNames.indexOf(deck.player[botIndex][1].value)> 8 && raise != 0){
+    else if(cards(0)> 7 && cards(1)> 7  && raise != 0 ){
       botCall(botIndex);
       /*
       if(playerStats[botIndex].Raise != 0){

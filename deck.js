@@ -329,12 +329,19 @@ var playerStats = [];
 
 function newRound(){
   //checks to see if deck variable was made before, if it was, it will clear the cards and make a new deck
+  updateChips();
+  let newBlind = Math.floor((Math.random() * 8) + 1);
+  //if(newBlind != 0)
+
+
+
   if (typeof deck !== 'undefined'){
     console.log("new game");
     for(let i = 0; i < 8; i++){
       let myNode = document.getElementById(i);
-        while (myNode.firstChild) {
-          myNode.removeChild(myNode.firstChild);
+        while (myNode.childElementCount != 1) {
+          myNode.removeChild(myNode.lastChild);
+          console.log("hi");
         }
     }
     for(let i = 0; i < 5; i++){
@@ -362,7 +369,17 @@ var phase = 0;
 
 
 
+function updateChips(){
+  for(let i = 0; i<8; i++){
+    document.getElementById(i).children[0].innerHTML = "Chips: ";
+    document.getElementById(i).children[0].innerHTML += playerStats[i].Chips;
+  }
+}
+
+
+let newRaise=0;
 function botRaise(player){
+  newRaise = player;
   if(raise != 0 && playerStats[player].Raise != 0){//calls the original raise
     let raiseDiff = raise - playerStats[player].Raise;
     pot+=raiseDiff;
@@ -381,9 +398,16 @@ function botRaise(player){
   playerStats[player].Chips-=50;
   playerStats[player].chippedIn+=50;
   playerStats[player].Raise+=50;
+  console.log(playerStats[player].Raise);
+  textBox(player, " raised ", playerStats[player].Raise);
+  console.log(player);
+  updateChips();
   if(player== 0)botTurn();
 }
+let lastCall = null;
 function botCall(playerId){
+  lastCall = playerId;
+  textBox(playerId, "called", raise);
   if(playerStats[nextPlayer(playerId)].Raise == raise && raise != 0){//checks to see if next player had the original raise
     playerStats[playerId].Chips-=raise;
     pot += raise;
@@ -391,6 +415,7 @@ function botCall(playerId){
     raise = 0;
     playerStats[playerId].Raise =0;//resets the amount raised(its paid for)
     //console.log("0");
+    console.log(playerId);
     if(phase == 0){
       for(let i = 0; i<3; i++)deck.next();
     }
@@ -399,6 +424,8 @@ function botCall(playerId){
       deck.next();
     }
     phase++;
+    updateChips();
+
     if(playerId == 0)botTurn();
 
   }
@@ -419,6 +446,7 @@ function botCall(playerId){
     if(playerId == 0)botTurn();
   }else console.log("Cant call");
 
+
 }
 
 
@@ -428,53 +456,69 @@ function nextPlayer(playerIndex){
   if(playerIndex == 8)playerIndex = 0;
   while(playerStats[playerIndex].Fold !=false || playerStats[playerIndex].Fold ==null){
     playerIndex++;
-    if(playerIndex == 8)playerIndex = 0;
+    if(playerIndex ==8)playerIndex = 0;
 
   }
-  console.log(playerIndex);
+  //console.log(playerIndex);
   return playerIndex;
 }
 
+const checkWinner = () => {
+  let count = 0;
+  let winner = [];
+  for(let x = 0; x< 8; x++){
+    if(playerStats[x].Fold == true){
+      count++
+    }else winner.push(x);
+    if(count == 6){
+      console.log("winner is " + x);
+      return {winner:true, index:this.x};
+    }
+    else return false;
+  }
+};
+
+function newPhase(){
+
+}
 
 
 
 function botTurn(){
   console.log(playerStats[0]);
   //if(playerStats[0].Fold!= true)
+  let id = nextPlayer(0);
 
-  for(let botIndex = 1; botIndex<8; botIndex++){
-    console.log(botIndex);
-
-    let cards = (x) => {return rankNames.indexOf(deck.player[botIndex][x].value)};
-    if(((cards(0)> 7 && cards(1)==12) || (cards(1)> 7 && cards(0)== 12)) && raise == 0){
-
-      botRaise(botIndex);
-      /*
-
-      raise += 50;
-      pot+=50;
-      console.log(pot);
-      playerStats[botIndex].chippedIn += 50;
-      playerStats[botIndex].Raised += 50;
-      playerStats[botIndex].Chips -= 50;
-      */
-    }
-
-    else if(cards(0)> 7 && cards(1)> 7  && raise != 0 ){
-      botCall(botIndex);
-      /*
-      if(playerStats[botIndex].Raise != 0){
-        let botDiff = raise - playerStats[botIndex].Raise
-        pot+=botDiff
-        playerStats[botIndex].chippedIn += botDiff;
-        playerStats[botIndex].Chips -= botDiff;
-      }else{
-        playerStats[botIndex].chippedIn += raise;
-        playerStats[botIndex].Chips -= raise;
+  //for(let botIndex = 1; botIndex<8; botIndex++){
+  while(id != 0 && checkWinner() != true){
+      console.log(id);
+      let cards = (x) => {return rankNames.indexOf(deck.player[id][x].value)};
+      if(((cards(0)> 7 && cards(1)==12) || (cards(1)> 7 && cards(0)== 12)) && raise == 0){
+        console.log("raised");
+        botRaise(id);
       }
-      */
-    }
-    //else if(rankNames.indexOf(deck.player[botIndex][0].value)> 8 && rankNames.indexOf(deck.player[botIndex][1].value)> 8 && raise != 0)
+
+      else if(cards(0)> 7 && cards(1)> 7  && raise != 0 ){
+        botCall(id);
+      }
+
+      else{
+
+
+        playerStats[id].Fold = true;
+        if(lastCall ==null);
+        else if(playerStats[nextPlayer(id)].Raise == playerStats[lastCall].chippedIn && raise !=0){
+          console.log("new phase");
+          if(phase == 0){
+            for(let i = 0; i<3; i++)deck.next();
+          }else deck.next();
+          phase++;
+          updateChips();
+        }
+      }
+      //else if(rankNames.indexOf(deck.player[botIndex][0].value)> 8 && rankNames.indexOf(deck.player[botIndex][1].value)> 8 && raise != 0)
+      id = nextPlayer(id);
+      updateChips();
 
   }
 console.log(playerStats);
@@ -489,18 +533,22 @@ function play(){
 function Check(){
 
   if(raise == 0)botTurn();
-  else console.log("cant call. check, fold or raise");
+  else console.log("cant check. call, fold or raise");
 }
 
 function Call(){
+
   botCall(0);
 }
 
 function Raise(){
+
   botRaise(0);
 }
 
 function Fold(){
+  playerStats[0].Fold = true;
+  textBox(0, " raised "+ playerStats[0].Chips );
   //playerStats[0].Fold = true;
   //raise+=100;
 //playerStats[1].Chips -=100;
@@ -521,4 +569,14 @@ function playRiver(){
 function Evaluate(){
   deck.pickWinner();
   //return winners index
+}
+function textBox(id, play,score){
+
+  let node = document.createElement("div");
+  playerPosition = id++;
+  node.innerHTML =  'Player ' + playerPosition + ' ' + play +' ' + score;
+  node.id = "line";
+  //node.innerHTML = "say what";
+  let parent = document.getElementById("messages");
+  parent.appendChild(node);
 }

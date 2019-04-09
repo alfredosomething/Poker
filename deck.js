@@ -366,7 +366,7 @@ var dealer = 0;
 var pot = 0;
 var raise = 0;
 var phase = 0;
-
+let time = 0;
 
 
 function updateChips(){
@@ -375,6 +375,7 @@ function updateChips(){
     document.getElementById(i).children[0].innerHTML += playerStats[i].Chips;
   }
 }
+
 
 
 let newRaise=0;
@@ -416,15 +417,8 @@ function botCall(playerId){
     playerStats[playerId].Raise =0;//resets the amount raised(its paid for)
     //console.log("0");
     console.log(playerId);
-    if(phase == 0){
-      for(let i = 0; i<3; i++)deck.next();
-    }
 
-    else{
-      deck.next();
-    }
-    phase++;
-    updateChips();
+    newPhase();
 
     if(playerId == 0)botTurn();
 
@@ -452,11 +446,15 @@ function botCall(playerId){
 
 function nextPlayer(playerIndex){
   //n = playerIndex++;
+  console.log(playerIndex);
   playerIndex++;
-  if(playerIndex == 8)playerIndex = 0;
-  while(playerStats[playerIndex].Fold !=false || playerStats[playerIndex].Fold ==null){
+
+  if(playerIndex > 7)playerIndex = 0;
+  while((playerStats[playerIndex].Fold !=false || playerStats[playerIndex].Fold ==null) && playerStats[0].Fold == false){
+    console.log(playerIndex);
     playerIndex++;
-    if(playerIndex ==8)playerIndex = 0;
+    if(playerIndex == 8)playerIndex = 0;
+
 
   }
   //console.log(playerIndex);
@@ -470,16 +468,34 @@ const checkWinner = () => {
     if(playerStats[x].Fold == true){
       count++
     }else winner.push(x);
-    if(count == 6){
+    if(count == 7){
       console.log("winner is " + x);
-      return {winner:true, index:this.x};
+      //return {winner:true, index:this.x};
+      return true;
     }
     else return false;
   }
 };
 
 function newPhase(){
+  console.log("new phase");
+  if(phase == 0){
+    for(let i = 0; i<3; i++)setTimeout(function(){ deck.next()}, time+=1000);
+  }
+  else if(phase = 4){
 
+  }else deck.next();
+
+  
+  playerStats.map(x => {
+    x.chippedIn = 0,
+    x.Raise = 0;
+  });
+  raise = 0;
+
+  phase++;
+
+  updateChips();
 }
 
 
@@ -488,19 +504,22 @@ function botTurn(){
   console.log(playerStats[0]);
   //if(playerStats[0].Fold!= true)
   let id = nextPlayer(0);
-
   //for(let botIndex = 1; botIndex<8; botIndex++){
-  while(id != 0 && checkWinner() != true){
+while(id != 0 && checkWinner() != true){
+
+
+
       console.log(id);
+      if(playerStats[id].Raise == raise)raise = 0;
       let cards = (x) => {return rankNames.indexOf(deck.player[id][x].value)};
       if(((cards(0)> 7 && cards(1)==12) || (cards(1)> 7 && cards(0)== 12)) && raise == 0){
         console.log("raised");
         botRaise(id);
       }
-
       else if(cards(0)> 7 && cards(1)> 7  && raise != 0 ){
         botCall(id);
       }
+      else if(raise == 0);
 
       else{
 
@@ -508,12 +527,7 @@ function botTurn(){
         playerStats[id].Fold = true;
         if(lastCall ==null);
         else if(playerStats[nextPlayer(id)].Raise == playerStats[lastCall].chippedIn && raise !=0){
-          console.log("new phase");
-          if(phase == 0){
-            for(let i = 0; i<3; i++)deck.next();
-          }else deck.next();
-          phase++;
-          updateChips();
+          newPhase();
         }
       }
       //else if(rankNames.indexOf(deck.player[botIndex][0].value)> 8 && rankNames.indexOf(deck.player[botIndex][1].value)> 8 && raise != 0)
@@ -521,8 +535,10 @@ function botTurn(){
       updateChips();
 
   }
-console.log(playerStats);
+  if(id==0)time = 0;
+  console.log(playerStats);
 }
+
 
 
 
@@ -548,19 +564,9 @@ function Raise(){
 
 function Fold(){
   playerStats[0].Fold = true;
-  textBox(0, " raised "+ playerStats[0].Chips );
-  //playerStats[0].Fold = true;
-  //raise+=100;
-//playerStats[1].Chips -=100;
-  //playerStats[1].chippedIn +=100;
-
-  //playerStats[1].Raise += 100;
+  textBox(0, " folded ", playerStats[0].Chips );
   botTurn();
 }
-
-
-
-
 
 
 function playRiver(){
@@ -570,13 +576,19 @@ function Evaluate(){
   deck.pickWinner();
   //return winners index
 }
+
+
 function textBox(id, play,score){
 
   let node = document.createElement("div");
-  playerPosition = id++;
-  node.innerHTML =  'Player ' + playerPosition + ' ' + play +' ' + score;
   node.id = "line";
+  let playerPosition = id;
+  playerPosition++;
+
+  node.innerHTML =  'Player ' + playerPosition + ' ' + play +' ' + score;
   //node.innerHTML = "say what";
   let parent = document.getElementById("messages");
-  parent.appendChild(node);
+  setTimeout(function(){ parent.appendChild(node);}, time+=1000);
+
+
 }

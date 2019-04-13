@@ -32,6 +32,8 @@ class Deck{
     this.player = [];
     this.river = [];//will hold river cards, later pushed into finalCards array
     this.riverCount = 0;
+    this.stats = [];
+    this.winner = [];
   }
 
   parseString(input){
@@ -102,7 +104,7 @@ class Deck{
       let parent = document.getElementById(i);
       for(var j=0; j<2; j++){
         //makes all cards that are not the first player(actual player) blank.
-        if(i!=0)this.player[i][j].show = true;
+        if(i!=0)this.player[i][j].show = false;
       deck.placeCard(parent ,this.player[i][j]);
       }
     }
@@ -265,31 +267,36 @@ class Deck{
     var winners = [];
     var scores = [];
     var handName = [];
+
     for(let i = 0; i<8; i++){
-      var result = this.evaluateHand(this.player[i]);//display the score of player hand
+      let result = this.evaluateHand(this.player[i]);//display the score of player hand
+      this.stats.push(result);
       scores.push(result.score);
-      handName.push(result.name);
+      //handName.push(result.name);
       //console.log(result);
       //result.forEach(hand => {
       //scores.push(hand.score);
       //});
     }
+    console.log(this.stats);
     console.log(scores);
     var newValue = scores[0];
     var scoreIndex = 0
     for (let i = 0; i < scores.length; i++) {
-      if (scores[i] <= newValue) {
-        //console.log(scores[i]);
-        if (scores[i] < newValue){
-        console.log(newValue);
-        winners = [];
-        newValue = scores[i];
-        }
-        winners.push(i);//array contains index of the highest scores
-      }
+      if(playerStats[i].Fold != true){
+        if (scores[i] <= newValue) {
+          //console.log(scores[i]);
+          if (scores[i] < newValue){
+          console.log(newValue);
+          winners = [];
+          newValue = scores[i];
+          }
+          winners.push(i);//array contains index of the highest scores
 
+        }
+      }
     }
-      //return winners;
+    this.winner = winners;
       console.log(winners);
       console.log(handName);
   }
@@ -323,13 +330,16 @@ var playerStats = [];
       chippedIn: 0,
 
     };
+
     playerStats.push(players);
   }
 
 
 function newRound(){
   //checks to see if deck variable was made before, if it was, it will clear the cards and make a new deck
-  updateChips();
+
+  phase = 0;
+  updateChips(null);
   let newBlind = Math.floor((Math.random() * 8) + 1);
   //if(newBlind != 0)
 
@@ -367,12 +377,17 @@ var pot = 0;
 var raise = 0;
 var phase = 0;
 let time = 0;
+lastRaise = null;
 
-
-function updateChips(){
-  for(let i = 0; i<8; i++){
-    document.getElementById(i).children[0].innerHTML = "Chips: ";
-    document.getElementById(i).children[0].innerHTML += playerStats[i].Chips;
+function updateChips(id){
+  if(id == null){
+    for(let i = 0; i<8; i++){
+      document.getElementById(i).children[0].innerHTML = "Chips: ";
+      document.getElementById(i).children[0].innerHTML += playerStats[i].Chips;
+    }
+  }else{
+    document.getElementById(id).children[0].innerHTML = "Chips: ";
+    document.getElementById(id).children[0].innerHTML += playerStats[id].Chips;
   }
 }
 
@@ -402,7 +417,7 @@ function botRaise(player){
   console.log(playerStats[player].Raise);
   textBox(player, " raised ", playerStats[player].Raise);
   console.log(player);
-  updateChips();
+  //updateChips();
   if(player== 0)botTurn();
 }
 let lastCall = null;
@@ -461,41 +476,37 @@ function nextPlayer(playerIndex){
   return playerIndex;
 }
 
-const checkWinner = () => {
-  let count = 0;
-  let winner = [];
-  for(let x = 0; x< 8; x++){
-    if(playerStats[x].Fold == true){
-      count++
-    }else winner.push(x);
-    if(count == 7){
-      console.log("winner is " + x);
-      //return {winner:true, index:this.x};
-      return true;
-    }
-    else return false;
-  }
-};
-
+function checkWinner(){
+  deck.pickWinner();
+  console.log(deck.stats);
+  console.log(deck.winner);
+}
 function newPhase(){
   console.log("new phase");
+  console.log("new phase");
+  if(phase == 3){
+    checkWinner();
+    textBox(deck.winner[0], " Won with ", deck.stats[deck.winner[0]].name);
+    return newRound();
+  }
   if(phase == 0){
     for(let i = 0; i<3; i++)setTimeout(function(){ deck.next()}, time+=1000);
   }
-  else if(phase = 4){
+  console.log("what");
+  //else if(phase = 4){
 
-  }else deck.next();
+  if(phase!=0)deck.next();
+  console.log("what");
 
-  
   playerStats.map(x => {
     x.chippedIn = 0,
     x.Raise = 0;
   });
   raise = 0;
-
   phase++;
+  console.log(phase);
+  //updateChips();
 
-  updateChips();
 }
 
 
@@ -505,25 +516,26 @@ function botTurn(){
   //if(playerStats[0].Fold!= true)
   let id = nextPlayer(0);
   //for(let botIndex = 1; botIndex<8; botIndex++){
-while(id != 0 && checkWinner() != true){
+while(id != 0){
 
 
 
       console.log(id);
-      if(playerStats[id].Raise == raise)raise = 0;
+      if(playerStats[id].Raise == raise && raise != 0)raise = 0;
       let cards = (x) => {return rankNames.indexOf(deck.player[id][x].value)};
-      if(((cards(0)> 7 && cards(1)==12) || (cards(1)> 7 && cards(0)== 12)) && raise == 0){
+      if(((cards(0)> 7 && cards(1)==12) || (cards(1)> 7 && cards(0)== 12)) && raise == 0 && phase == 0){
         console.log("raised");
         botRaise(id);
       }
       else if(cards(0)> 7 && cards(1)> 7  && raise != 0 ){
         botCall(id);
       }
-      else if(raise == 0);
-
+      else if(raise == 0 && playerStats[id].Fold != true){
+        if(newRaise == nextPlayer(id))newPhase();
+        textBox(id, " checked ","");
+      }
       else{
-
-
+        textBox(id, " folded ","");
         playerStats[id].Fold = true;
         if(lastCall ==null);
         else if(playerStats[nextPlayer(id)].Raise == playerStats[lastCall].chippedIn && raise !=0){
@@ -532,7 +544,7 @@ while(id != 0 && checkWinner() != true){
       }
       //else if(rankNames.indexOf(deck.player[botIndex][0].value)> 8 && rankNames.indexOf(deck.player[botIndex][1].value)> 8 && raise != 0)
       id = nextPlayer(id);
-      updateChips();
+      //updateChips();
 
   }
   if(id==0)time = 0;
@@ -547,13 +559,12 @@ function play(){
 }
 
 function Check(){
-
+  textBox(0, " checked ","");
   if(raise == 0)botTurn();
   else console.log("cant check. call, fold or raise");
 }
 
 function Call(){
-
   botCall(0);
 }
 
@@ -587,8 +598,19 @@ function textBox(id, play,score){
 
   node.innerHTML =  'Player ' + playerPosition + ' ' + play +' ' + score;
   //node.innerHTML = "say what";
+  let blink = document.getElementById(id);
   let parent = document.getElementById("messages");
-  setTimeout(function(){ parent.appendChild(node);}, time+=1000);
+  setTimeout(function(){
+    blink.style.borderColor = 'black';
+    updateChips(id);
+    if(playerStats[id].Fold == true)document.getElementById(id)
+    parent.appendChild(node);
+    var elem = document.getElementById('textBox');
+    elem.scrollTop = elem.scrollHeight;
+  }, time+=1000,);
+  setTimeout(function(){blink.style.borderColor = 'white';},time+500,);
+
+
 
 
 }

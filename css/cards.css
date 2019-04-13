@@ -57,7 +57,8 @@
   padding:0px;
   position:relative;
 
-  border:white 2px solid;
+  border: white 2px solid;
+  
   width: 100px;
   height:80px;
 
@@ -137,17 +138,18 @@ justify-content: center;
 
   width:200px;
   border:1px solid #ccc;
+  overflow: auto;
 
-  overflow:auto;
 }
 #messages{
-
+  overflow: auto;
   padding:0px;
   font-size: 10px;
 
 }
 #line{
   padding: 2px 0px 8px 5px;
+  overflow: auto;
 }
 
 #value{

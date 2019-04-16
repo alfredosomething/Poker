@@ -104,7 +104,7 @@ class Deck{
       let parent = document.getElementById(i);
       for(var j=0; j<2; j++){
         //makes all cards that are not the first player(actual player) blank.
-        if(i!=0)this.player[i][j].show = false;
+        if(i!=0)this.player[i][j].show = true;
       deck.placeCard(parent ,this.player[i][j]);
       }
     }
@@ -121,7 +121,9 @@ class Deck{
       //will show the card if this.player[][].show == true; true by default
     //deck.showCard(div, idSlot,card);
   }else{div.innerText = "🂠"};
-    idSlot.appendChild(div);
+    if(this.riverCount!=0)setTimeout(function(){idSlot.appendChild(div);}, time+=1000,)
+    else idSlot.appendChild(div);
+
   }
 
   //shows the card value and suit(flips card): showCard(the parent id(player positon/river), id name of card slot, object position in array ex: )
@@ -153,12 +155,16 @@ class Deck{
 
   }
 
-  next(){
+    next(){
     if(this.riverCount < 5){
-      deck.placeCard(document.getElementsByClassName('riverSlot')[this.riverCount], this.last);
+
+
       console.log(this.last.parsedCard);
       this.riverCount++;
+      deck.placeCard(document.getElementsByClassName('riverSlot')[this.riverCount-1], this.last);
+
       this.river.push(this.last.value + this.last.suit);
+      console.log(this.river);
       this.deck.pop();
     }else{
       console.log("Max river cards hit");
@@ -334,12 +340,13 @@ var playerStats = [];
     playerStats.push(players);
   }
 
-
+  var lastCall = null;
 function newRound(){
   //checks to see if deck variable was made before, if it was, it will clear the cards and make a new deck
 
   phase = 0;
   updateChips(null);
+
   let newBlind = Math.floor((Math.random() * 8) + 1);
   //if(newBlind != 0)
 
@@ -369,6 +376,16 @@ function newRound(){
   deck.playerHands();
   deck.fillSlots();
 
+  //dealer = 2;
+  //playerStats[2].Raise+=50;
+  //raise+=50;
+  //pot+=50;
+  //playerStats[2].chippedIn+=50;
+  //playerStats[2].Chips-=50;
+  dealer = 0;
+  //botRaise(2);
+
+
 }
 
 
@@ -377,7 +394,8 @@ var pot = 0;
 var raise = 0;
 var phase = 0;
 let time = 0;
-lastRaise = null;
+newRaise = null;
+var winner = null;
 
 function updateChips(id){
   if(id == null){
@@ -393,7 +411,7 @@ function updateChips(id){
 
 
 
-let newRaise=0;
+
 function botRaise(player){
   newRaise = player;
   if(raise != 0 && playerStats[player].Raise != 0){//calls the original raise
@@ -419,8 +437,9 @@ function botRaise(player){
   console.log(player);
   //updateChips();
   if(player== 0)botTurn();
+  if(dealer == player)botTurn();
 }
-let lastCall = null;
+
 function botCall(playerId){
   lastCall = playerId;
   textBox(playerId, "called", raise);
@@ -465,10 +484,11 @@ function nextPlayer(playerIndex){
   playerIndex++;
 
   if(playerIndex > 7)playerIndex = 0;
-  while((playerStats[playerIndex].Fold !=false || playerStats[playerIndex].Fold ==null) && playerStats[0].Fold == false){
+  while((playerStats[playerIndex].Fold !=false || playerStats[playerIndex].Fold ==null) ){
     console.log(playerIndex);
     playerIndex++;
     if(playerIndex == 8)playerIndex = 0;
+    if(playerStats[0].Fold == true && playerIndex == 0)playerIndex++;
 
 
   }
@@ -481,16 +501,29 @@ function checkWinner(){
   console.log(deck.stats);
   console.log(deck.winner);
 }
+//function newPhase(){
 function newPhase(){
+
   console.log("new phase");
   console.log("new phase");
   if(phase == 3){
     checkWinner();
+    winner = 0;
     textBox(deck.winner[0], " Won with ", deck.stats[deck.winner[0]].name);
-    return newRound();
+
+    //setTimeout(()=>{ newRound();}, time+=10000);
+
   }
   if(phase == 0){
-    for(let i = 0; i<3; i++)setTimeout(function(){ deck.next()}, time+=1000);
+
+    for(let i = 0; i<3; i++){
+      console.log("first");
+      console.log(time);
+      //setTimeout(()=>{deck.next()}, time+=1000);
+      deck.next();
+
+
+    }
   }
   console.log("what");
   //else if(phase = 4){
@@ -514,9 +547,13 @@ function newPhase(){
 function botTurn(){
   console.log(playerStats[0]);
   //if(playerStats[0].Fold!= true)
-  let id = nextPlayer(0);
+//  let id = nextPlayer(0);
+//if(newRaise == 0 && playerStats[0].Fold == true);
+let id = nextPlayer(0);
+if(dealer !=null)id = nextPlayer(dealer);
+  console.log(raise);
   //for(let botIndex = 1; botIndex<8; botIndex++){
-while(id != 0){
+while(id != 0 && winner == null){
 
 
 
@@ -526,28 +563,41 @@ while(id != 0){
       if(((cards(0)> 7 && cards(1)==12) || (cards(1)> 7 && cards(0)== 12)) && raise == 0 && phase == 0){
         console.log("raised");
         botRaise(id);
+        lastCall = id;
       }
       else if(cards(0)> 7 && cards(1)> 7  && raise != 0 ){
         botCall(id);
+        console.log("called");
       }
-      else if(raise == 0 && playerStats[id].Fold != true){
-        if(newRaise == nextPlayer(id))newPhase();
+      else if(raise == 0){
+
         textBox(id, " checked ","");
+        console.log("checked");
+        if(newRaise == nextPlayer(id))newPhase();
+
+
+
+
       }
       else{
         textBox(id, " folded ","");
+        console.log("folded");
+        console.log(phase);
         playerStats[id].Fold = true;
         if(lastCall ==null);
         else if(playerStats[nextPlayer(id)].Raise == playerStats[lastCall].chippedIn && raise !=0){
           newPhase();
         }
       }
+
       //else if(rankNames.indexOf(deck.player[botIndex][0].value)> 8 && rankNames.indexOf(deck.player[botIndex][1].value)> 8 && raise != 0)
       id = nextPlayer(id);
+
       //updateChips();
 
   }
   if(id==0)time = 0;
+  if(playerStats[0].Fold != true)dealer = null;
   console.log(playerStats);
 }
 
@@ -560,7 +610,11 @@ function play(){
 
 function Check(){
   textBox(0, " checked ","");
-  if(raise == 0)botTurn();
+
+  if(raise == 0){
+    if(newRaise == nextPlayer(0))newPhase();
+    botTurn();
+  }
   else console.log("cant check. call, fold or raise");
 }
 
@@ -575,7 +629,8 @@ function Raise(){
 
 function Fold(){
   playerStats[0].Fold = true;
-  textBox(0, " folded ", playerStats[0].Chips );
+  if(newRaise == 0)newRaise = nextPlayer(0);
+  textBox(0, " folded ", "" );
   botTurn();
 }
 
